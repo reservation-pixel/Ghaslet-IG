@@ -1,0 +1,35 @@
+{
+  "name": "ghaslet-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "db:status": "tsx src/scripts/migrate.ts --status",
+    "setup:instagram": "tsx src/scripts/setup-instagram.ts",
+    "create-user": "tsx src/scripts/create-user.ts",
+    "seed:superadmin": "tsx src/scripts/seed-superadmin.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "jose": "^6.2.8",
+    "next": "16.2.1",
+    "openai": "^6.33.0",
+    "pg": "^8.22.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.21.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.7",
+    "typescript": "^5.9.3"
+  }
+}
