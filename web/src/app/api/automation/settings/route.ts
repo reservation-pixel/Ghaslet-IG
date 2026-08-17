@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getSettings, updateSettings } from "@/database/automationRuleRepository";
 import type { AutomationSettings } from "@/lib/types";
-import { requireUser } from "@/lib/auth/guard";
+import { requireUser, requireManager } from "@/lib/auth/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,8 @@ export async function GET() {
   if (auth instanceof Response) return auth;
 
   try {
-    return Response.json(await getSettings());
+    const { instagram_access_token: _, ...safe } = await getSettings();
+    return Response.json(safe);
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
@@ -25,7 +26,7 @@ const BOOLEAN_FIELDS = [
 ] as const;
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireUser();
+  const auth = await requireManager();
   if (auth instanceof Response) return auth;
 
   const body = await request.json();
@@ -48,7 +49,8 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    return Response.json(await updateSettings(patch));
+    const { instagram_access_token: _, ...safe } = await updateSettings(patch);
+    return Response.json(safe);
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }

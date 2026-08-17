@@ -4,16 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { SessionProvider, type SessionUser } from "@/components/SessionContext";
 import { apiJson } from "@/lib/apiFetch";
 import type { AutomationSettings } from "@/lib/types";
-import { ROLE_LABEL, type UserRole } from "@/lib/auth/roles";
-
-interface SessionUser {
-  id: string;
-  email: string;
-  name: string | null;
-  role: UserRole;
-}
+import { ROLE_LABEL } from "@/lib/auth/roles";
 
 /** Routes that render without the shell. */
 const BARE_ROUTES = new Set(["/login"]);
@@ -49,7 +43,7 @@ const icon = (d: React.ReactNode) => (
   </svg>
 );
 
-const SECTIONS: { title: string; items: NavItem[] }[] = [
+const BASE_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: "Overview",
     items: [
@@ -97,6 +91,19 @@ const SECTIONS: { title: string; items: NavItem[] }[] = [
     title: "Outreach",
     items: [
       {
+        href: "/scripts",
+        label: "Scripts",
+        icon: icon(
+          <>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </>
+        ),
+      },
+      {
         href: "/broadcast",
         label: "Broadcast",
         icon: icon(
@@ -124,6 +131,23 @@ const SECTIONS: { title: string; items: NavItem[] }[] = [
     ],
   },
 ];
+
+const TEAM_SECTION: { title: string; items: NavItem[] } = {
+  title: "Admin",
+  items: [
+    {
+      href: "/team",
+      label: "Team",
+      icon: icon(
+        <>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </>
+      ),
+    },
+  ],
+};
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -171,7 +195,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // The login page owns its own full-page layout.
   if (bare) return <>{children}</>;
 
-  const current = SECTIONS.flatMap((s) => s.items).find((i) => i.href === pathname);
+  const sections = user?.role === "superadmin"
+    ? [...BASE_SECTIONS, TEAM_SECTION]
+    : BASE_SECTIONS;
+  const current = sections.flatMap((s) => s.items).find((i) => i.href === pathname);
   const workerOk = settings?.playwright_session_valid ?? null;
 
   return (
@@ -208,7 +235,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2.5 py-4">
-          {SECTIONS.map((section) => (
+          {sections.map((section) => (
             <div key={section.title} className="mb-5">
               <p
                 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider"
@@ -393,7 +420,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto">
+          <SessionProvider value={user}>{children}</SessionProvider>
+        </main>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Avatar, Badge, Button, EmptyState, Input, formatRelative, formatTime } 
 import type { ConversationWithLastMessage, Message } from "@/lib/types";
 import { apiFetch } from "@/lib/apiFetch";
 import { useLiveRefresh } from "@/lib/useLiveRefresh";
+import { useCanManage } from "@/components/SessionContext";
 
 export default function InboxPage() {
   return (
@@ -17,7 +18,7 @@ export default function InboxPage() {
 
 function Inbox() {
   const searchParams = useSearchParams();
-
+  const canManage = useCanManage();
 
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -216,18 +217,20 @@ function Inbox() {
                 </div>
               </div>
 
-              <Button
-                onClick={toggleMode}
-                variant={selected.mode === "agent" ? "secondary" : "primary"}
-                size="sm"
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: selected.mode === "agent" ? "var(--good)" : "var(--warning)" }}
-                  aria-hidden
-                />
-                {selected.mode === "agent" ? "AI replying" : "Human takeover"}
-              </Button>
+              {canManage && (
+                <Button
+                  onClick={toggleMode}
+                  variant={selected.mode === "agent" ? "secondary" : "primary"}
+                  size="sm"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: selected.mode === "agent" ? "var(--good)" : "var(--warning)" }}
+                    aria-hidden
+                  />
+                  {selected.mode === "agent" ? "AI replying" : "Human takeover"}
+                </Button>
+              )}
             </div>
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
@@ -276,27 +279,29 @@ function Inbox() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div
-              className="flex-shrink-0 border-t px-5 py-3"
-              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-            >
-              <div className="flex items-center gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder={
-                    selected.mode === "agent"
-                      ? "Send a manual message (AI stays on)"
-                      : "Type a reply…"
-                  }
-                  aria-label="Message"
-                />
-                <Button onClick={handleSend} disabled={sending || !input.trim()} variant="primary">
-                  {sending ? "Sending…" : "Send"}
-                </Button>
+            {canManage && (
+              <div
+                className="flex-shrink-0 border-t px-5 py-3"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              >
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    placeholder={
+                      selected.mode === "agent"
+                        ? "Send a manual message (AI stays on)"
+                        : "Type a reply…"
+                    }
+                    aria-label="Message"
+                  />
+                  <Button onClick={handleSend} disabled={sending || !input.trim()} variant="primary">
+                    {sending ? "Sending…" : "Send"}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

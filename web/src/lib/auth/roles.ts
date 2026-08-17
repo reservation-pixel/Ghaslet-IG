@@ -4,18 +4,14 @@
  * The union was previously redeclared in five files, which is exactly how a
  * new tier ends up recognised by the login route and ignored by the guard.
  */
-export type UserRole = "superadmin" | "admin" | "agent";
+export type UserRole = "superadmin" | "manager" | "viewer";
 
-export const USER_ROLES: UserRole[] = ["superadmin", "admin", "agent"];
+export const USER_ROLES: UserRole[] = ["superadmin", "manager", "viewer"];
 
-/**
- * Higher outranks lower. Checks are `hasAtLeast`, never equality — an
- * `=== "admin"` test would lock the superadmin out of admin-only routes.
- */
 const RANK: Record<UserRole, number> = {
   superadmin: 30,
-  admin: 20,
-  agent: 10,
+  manager: 20,
+  viewer: 10,
 };
 
 export function isUserRole(value: unknown): value is UserRole {
@@ -28,12 +24,12 @@ export function hasAtLeast(role: UserRole, required: UserRole): boolean {
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   superadmin: "Superadmin",
-  admin: "Admin",
-  agent: "Agent",
+  manager: "Manager",
+  viewer: "Viewer",
 };
 
 export const ROLE_DESCRIPTION: Record<UserRole, string> = {
   superadmin: "Full access, including managing other users. Exactly one exists.",
-  admin: "Full access to conversations, contacts and automation rules.",
-  agent: "Read and reply to conversations.",
+  manager: "Manage conversations, automation, scripts, and broadcasts.",
+  viewer: "View-only access to the dashboard.",
 };

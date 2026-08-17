@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useCanManage, useSession } from "@/components/SessionContext";
 import {
   Badge,
   Button,
@@ -37,12 +39,21 @@ const EMPTY_DRAFT = {
 type Draft = typeof EMPTY_DRAFT;
 
 export default function AutomationPage() {
+  const canManage = useCanManage();
+  const session = useSession();
+  const isSuperadmin = session?.role === "superadmin";
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [settings, setSettings] = useState<AutomationSettings | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [tokenPreview, setTokenPreview] = useState<string | null>(null);
+  const [tokenConfigured, setTokenConfigured] = useState(false);
+  const [tokenInput, setTokenInput] = useState("");
+  const [tokenSaving, setTokenSaving] = useState(false);
+  const [tokenSaved, setTokenSaved] = useState(false);
 
   const load = useCallback(async () => {
     const [rulesRes, settingsRes] = await Promise.all([
@@ -56,6 +67,35 @@ export default function AutomationPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!isSuperadmin) return;
+    apiFetch("/api/settings/token").then(async (res) => {
+      if (!res.ok) return;
+      const data = await res.json();
+      setTokenConfigured(data.configured);
+      setTokenPreview(data.preview);
+    });
+  }, [isSuperadmin]);
+
+  async function saveToken() {
+    setTokenSaving(true);
+    setTokenSaved(false);
+    const res = await apiFetch("/api/settings/token", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: tokenInput }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setTokenConfigured(data.configured);
+      setTokenPreview(data.preview);
+      setTokenInput("");
+      setTokenSaved(true);
+      setTimeout(() => setTokenSaved(false), 2000);
+    }
+    setTokenSaving(false);
+  }
 
   async function patchSettings(patch: Partial<AutomationSettings>) {
     // Optimistic — a toggle that lags behind the click feels broken.
@@ -116,14 +156,16 @@ export default function AutomationPage() {
         title="Automation"
         subtitle="Rules decide what gets sent. Nothing is sent unless a rule matches."
         action={
-          <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "New rule"}
-          </Button>
+          canManage ? (
+            <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
+              {showForm ? "Cancel" : "New rule"}
+            </Button>
+          ) : undefined
         }
       />
 
       {/* Global switches */}
-      {settings && (
+      {canManage && settings && (
         <Card className="mb-4">
           <CardHeader title="Global settings" subtitle="These override individual rules." />
 
@@ -179,8 +221,40 @@ export default function AutomationPage() {
         </Card>
       )}
 
+      {/* Instagram access token (superadmin only) */}
+      {isSuperadmin && (
+        <Card className="mb-4">
+          <CardHeader
+            title="Instagram access token"
+            subtitle={
+              tokenConfigured
+                ? `Configured: ${tokenPreview}`
+                : "Not set — falling back to environment variable."
+            }
+          />
+          <div className="flex items-end gap-3">
+            <div className="min-w-0 flex-1">
+              <Input
+                type="password"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder={tokenConfigured ? "Paste new token to replace" : "Paste your Instagram access token"}
+              />
+            </div>
+            <Button onClick={saveToken} disabled={tokenSaving || !tokenInput.trim()}>
+              {tokenSaving ? "Saving..." : "Save"}
+            </Button>
+            {tokenSaved && (
+              <span className="text-xs font-medium" style={{ color: "var(--good)" }}>
+                Saved
+              </span>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* New rule form */}
-      {showForm && (
+      {canManage && showForm && (
         <Card className="mb-4">
           <CardHeader title="New rule" />
 
@@ -299,48 +373,62 @@ export default function AutomationPage() {
                 </div>
 
                 <div className="flex flex-col">
-                  {group.map((rule, i) => (
-                    <div
-                      key={rule.id}
-                      className="flex items-start justify-between gap-4 px-5 py-4"
-                      style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[13px] font-medium" style={{ color: "var(--ink)" }}>
-                            {rule.match_keywords?.length
-                              ? rule.match_keywords.join(", ")
-                              : "Catch-all"}
-                          </span>
-                          {rule.use_ai && <Badge tone="accent">AI</Badge>}
-                          <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
-                            priority {rule.priority}
-                          </span>
+                  {group.map((rule, i) => {
+                    const isScript = !rule.match_keywords || rule.match_keywords.length === 0;
+                    return (
+                      <div
+                        key={rule.id}
+                        className="flex items-start justify-between gap-4 px-5 py-4"
+                        style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[13px] font-medium" style={{ color: "var(--ink)" }}>
+                              {isScript ? "Default script" : rule.match_keywords!.join(", ")}
+                            </span>
+                            {isScript && <Badge tone="accent">Script</Badge>}
+                            {rule.use_ai && <Badge tone="cat-2">AI</Badge>}
+                            {!isScript && (
+                              <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
+                                priority {rule.priority}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-2 flex flex-col gap-1 text-[13px]">
+                            {rule.public_reply_template && (
+                              <TemplateLine label="Public" text={rule.public_reply_template} />
+                            )}
+                            {rule.dm_template && <TemplateLine label="DM" text={rule.dm_template} />}
+                            {rule.ai_instruction && (
+                              <TemplateLine label="AI" text={rule.ai_instruction} />
+                            )}
+                          </div>
                         </div>
 
-                        <div className="mt-2 flex flex-col gap-1 text-[13px]">
-                          {rule.public_reply_template && (
-                            <TemplateLine label="Public" text={rule.public_reply_template} />
-                          )}
-                          {rule.dm_template && <TemplateLine label="DM" text={rule.dm_template} />}
-                          {rule.ai_instruction && (
-                            <TemplateLine label="AI" text={rule.ai_instruction} />
-                          )}
-                        </div>
+                        {isScript ? (
+                          <Link
+                            href="/scripts"
+                            className="flex-shrink-0 rounded-[8px] border px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-85"
+                            style={{ borderColor: "var(--border-strong)", color: "var(--accent)" }}
+                          >
+                            Edit in Scripts
+                          </Link>
+                        ) : canManage ? (
+                          <div className="flex flex-shrink-0 items-center gap-2">
+                            <Toggle
+                              checked={rule.enabled}
+                              onChange={() => toggleRule(rule)}
+                              label={`${rule.enabled ? "Disable" : "Enable"} rule`}
+                            />
+                            <Button size="sm" variant="danger" onClick={() => removeRule(rule)}>
+                              Delete
+                            </Button>
+                          </div>
+                        ) : null}
                       </div>
-
-                      <div className="flex flex-shrink-0 items-center gap-2">
-                        <Toggle
-                          checked={rule.enabled}
-                          onChange={() => toggleRule(rule)}
-                          label={`${rule.enabled ? "Disable" : "Enable"} rule`}
-                        />
-                        <Button size="sm" variant="danger" onClick={() => removeRule(rule)}>
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Card>
             )

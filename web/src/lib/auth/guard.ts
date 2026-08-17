@@ -54,9 +54,9 @@ export async function requireRole(required: UserRole): Promise<AccessClaims | Re
   return user;
 }
 
-/** Admin or above — a superadmin passes. */
-export function requireAdmin(): Promise<AccessClaims | Response> {
-  return requireRole("admin");
+/** Manager or above — a superadmin passes. */
+export function requireManager(): Promise<AccessClaims | Response> {
+  return requireRole("manager");
 }
 
 /** Superadmin only. */

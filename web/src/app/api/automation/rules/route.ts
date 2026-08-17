@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { createRule, listRules } from "@/database/automationRuleRepository";
 import { normalizeKeywords } from "@/lib/keywords";
 import type { EventType } from "@/lib/types";
-import { requireUser } from "@/lib/auth/guard";
+import { requireUser, requireManager } from "@/lib/auth/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireUser();
+  const auth = await requireManager();
   if (auth instanceof Response) return auth;
 
   const body = await request.json();

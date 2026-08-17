@@ -56,6 +56,8 @@ const DEFAULT_SETTINGS: AutomationSettings = {
   playwright_session_valid: false,
   playwright_last_poll_at: null,
   playwright_last_error: null,
+  dm_system_prompt: null,
+  instagram_access_token: null,
   updated_at: new Date(0).toISOString(),
 };
 
@@ -88,6 +90,8 @@ const SETTINGS_COLUMNS = [
   "playwright_session_valid",
   "playwright_last_poll_at",
   "playwright_last_error",
+  "dm_system_prompt",
+  "instagram_access_token",
 ] as const;
 
 export async function updateSettings(
@@ -219,4 +223,70 @@ export async function updateRule(id: string, patch: RuleInput): Promise<Automati
 export async function deleteRule(id: string): Promise<void> {
   invalidateCache();
   await execute("delete from automation_rules where id = $1", [id]);
+}
+
+export async function getCatchAllRule(eventType: EventType): Promise<AutomationRule | null> {
+  return (
+    (await queryOne<AutomationRule>(
+      `select * from automation_rules
+        where event_type = $1
+          and (match_keywords is null or match_keywords = '{}')
+        order by priority desc
+        limit 1`,
+      [eventType]
+    )) ?? null
+  );
+}
+
+export async function upsertCatchAllRule(
+  eventType: EventType,
+  data: {
+    dm_template?: string | null;
+    public_reply_template?: string | null;
+    use_ai?: boolean;
+    ai_instruction?: string | null;
+  }
+): Promise<AutomationRule> {
+  invalidateCache();
+
+  const existing = await getCatchAllRule(eventType);
+
+  if (existing) {
+    const row = await queryOne<AutomationRule>(
+      `update automation_rules
+          set dm_template = $1,
+              public_reply_template = $2,
+              use_ai = $3,
+              ai_instruction = $4,
+              updated_at = now()
+        where id = $5
+        returning *`,
+      [
+        data.dm_template ?? null,
+        data.public_reply_template ?? null,
+        data.use_ai ?? false,
+        data.ai_instruction ?? null,
+        existing.id,
+      ]
+    );
+    if (!row) throw new Error("upsertCatchAllRule: update returned no row");
+    return row;
+  }
+
+  const row = await queryOne<AutomationRule>(
+    `insert into automation_rules
+       (event_type, match_keywords, dm_template, public_reply_template,
+        use_ai, ai_instruction, enabled, priority)
+     values ($1, null, $2, $3, $4, $5, true, 0)
+     returning *`,
+    [
+      eventType,
+      data.dm_template ?? null,
+      data.public_reply_template ?? null,
+      data.use_ai ?? false,
+      data.ai_instruction ?? null,
+    ]
+  );
+  if (!row) throw new Error("upsertCatchAllRule: insert returned no row");
+  return row;
 }

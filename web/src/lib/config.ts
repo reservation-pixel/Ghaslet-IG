@@ -139,7 +139,6 @@ export function assertMetaConfig() {
   assertKeys(
     [
       "DATABASE_URL",
-      "INSTAGRAM_ACCESS_TOKEN",
       "INSTAGRAM_VERIFY_TOKEN",
       "IG_USER_ID",
     ],

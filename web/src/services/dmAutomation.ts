@@ -1,5 +1,7 @@
 import { sendInstagramMessage } from "@/lib/instagram";
 import { getAIResponse } from "@/lib/ai";
+import { INSTAGRAM_SYSTEM_PROMPT } from "@/lib/system-prompt";
+import { getSettings } from "@/database/automationRuleRepository";
 import { createLogger } from "@/lib/logger";
 import {
   findOrCreateByIgsid,
@@ -70,7 +72,9 @@ export async function handleMessagingEvent(messaging: MessagingEvent): Promise<D
   if (conversation.mode === "human") return "stored_for_human";
 
   const history = await getHistory(conversation.id, 20);
-  const aiResponse = await getAIResponse(history);
+  const settings = await getSettings();
+  const systemPrompt = settings.dm_system_prompt || INSTAGRAM_SYSTEM_PROMPT;
+  const aiResponse = await getAIResponse(history, { systemPrompt });
 
   await sendInstagramMessage(igsid, aiResponse);
 

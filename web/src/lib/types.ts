@@ -77,5 +77,7 @@ export interface AutomationSettings {
   playwright_session_valid: boolean;
   playwright_last_poll_at: string | null;
   playwright_last_error: string | null;
+  dm_system_prompt: string | null;
+  instagram_access_token: string | null;
   updated_at: string;
 }

@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/guard";
+import { requireManager } from "@/lib/auth/guard";
 import {
   createBroadcast,
   countUniqueReachable,
@@ -6,7 +6,7 @@ import {
 } from "@/database/broadcastRepository";
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireManager();
   if (auth instanceof Response) return auth;
 
   const [broadcasts, reachable] = await Promise.all([
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireManager();
   if (auth instanceof Response) return auth;
 
   const body = await request.json();

@@ -58,7 +58,7 @@ export async function createUser(input: {
     `insert into app_users (email, password_hash, name, role)
      values ($1, $2, $3, $4)
      returning *`,
-    [normalizeEmail(input.email), input.passwordHash, input.name ?? null, input.role ?? "admin"]
+    [normalizeEmail(input.email), input.passwordHash, input.name ?? null, input.role ?? "manager"]
   );
   if (!row) throw new Error("createUser returned no row");
   return row;
@@ -99,6 +99,53 @@ export async function setRole(userId: string, role: UserRole): Promise<void> {
 
 export async function countUsers(): Promise<number> {
   return count("select count(*) from app_users");
+}
+
+export type ListUser = PublicUser & { created_at: string };
+
+export async function listUsers(): Promise<ListUser[]> {
+  const rows = await query<AppUser>(
+    "select * from app_users order by created_at asc"
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    email: r.email,
+    name: r.name,
+    role: r.role,
+    created_at: r.created_at,
+  }));
+}
+
+export async function updateUser(
+  id: string,
+  patch: { name?: string; role?: UserRole }
+): Promise<AppUser | null> {
+  const sets: string[] = [];
+  const params: unknown[] = [];
+
+  if (patch.name !== undefined) {
+    params.push(patch.name);
+    sets.push(`name = $${params.length}`);
+  }
+  if (patch.role !== undefined) {
+    params.push(patch.role);
+    sets.push(`role = $${params.length}`);
+  }
+
+  if (sets.length === 0) return findUserById(id);
+
+  params.push(id);
+  return queryOne<AppUser>(
+    `update app_users set ${sets.join(", ")}, updated_at = now()
+     where id = $${params.length}
+     returning *`,
+    params
+  );
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  await revokeAllSessions(id);
+  await execute("delete from app_users where id = $1", [id]);
 }
 
 export async function touchLastLogin(userId: string): Promise<void> {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useCanManage } from "@/components/SessionContext";
 import {
   Badge,
   Button,
@@ -50,6 +51,7 @@ const STATUS_TONE: Record<string, Tone> = {
 };
 
 export default function BroadcastPage() {
+  const canManage = useCanManage();
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [reachable, setReachable] = useState(0);
   const [message, setMessage] = useState("");
@@ -189,23 +191,25 @@ export default function BroadcastPage() {
             />
           </div>
 
-          <div className="flex gap-2">
-            {active.status !== "done" && !sending && (
-              <Button onClick={startSending}>
-                {active.sent_count > 0 ? "Resume sending" : "Start sending"}
-              </Button>
-            )}
-            {sending && (
-              <Button onClick={stopSending} variant="secondary">
-                Pause
-              </Button>
-            )}
-            {sending && (
-              <span className="flex items-center text-xs" style={{ color: "var(--ink-muted)" }}>
-                Sending…
-              </span>
-            )}
-          </div>
+          {canManage && (
+            <div className="flex gap-2">
+              {active.status !== "done" && !sending && (
+                <Button onClick={startSending}>
+                  {active.sent_count > 0 ? "Resume sending" : "Start sending"}
+                </Button>
+              )}
+              {sending && (
+                <Button onClick={stopSending} variant="secondary">
+                  Pause
+                </Button>
+              )}
+              {sending && (
+                <span className="flex items-center text-xs" style={{ color: "var(--ink-muted)" }}>
+                  Sending…
+                </span>
+              )}
+            </div>
+          )}
         </Card>
 
         <Card padded={false}>
@@ -266,28 +270,30 @@ export default function BroadcastPage() {
         subtitle="Send a message to everyone who has interacted with your account."
       />
 
-      <Card className="mb-6">
-        <CardHeader
-          title="New broadcast"
-          subtitle={`${reachable} reachable contacts (followers, likers, commenters & DM contacts)`}
-        />
+      {canManage && (
+        <Card className="mb-6">
+          <CardHeader
+            title="New broadcast"
+            subtitle={`${reachable} reachable contacts (followers, likers, commenters & DM contacts)`}
+          />
 
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message here…"
-          rows={6}
-          maxLength={1000}
-        />
-        <div className="mt-1 flex items-center justify-between">
-          <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
-            {message.length}/1000
-          </span>
-          <Button onClick={create} disabled={!message.trim() || creating}>
-            {creating ? "Creating…" : `Create broadcast (${reachable} recipients)`}
-          </Button>
-        </div>
-      </Card>
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message here…"
+            rows={6}
+            maxLength={1000}
+          />
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
+              {message.length}/1000
+            </span>
+            <Button onClick={create} disabled={!message.trim() || creating}>
+              {creating ? "Creating…" : `Create broadcast (${reachable} recipients)`}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Card padded={false}>
         <div className="p-4">

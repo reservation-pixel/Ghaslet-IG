@@ -1,4 +1,4 @@
-import { GRAPH_BASE } from "@/lib/instagram";
+import { GRAPH_BASE, getInstagramToken } from "@/lib/instagram";
 import { config } from "@/lib/config";
 import { createLogger } from "@/lib/logger";
 
@@ -85,9 +85,8 @@ async function graphFetch(
   return body;
 }
 
-function authedUrl(path: string): URL {
-  const token = config.instagramAccessToken;
-  if (!token) throw new Error("INSTAGRAM_ACCESS_TOKEN is not set");
+async function authedUrl(path: string): Promise<URL> {
+  const token = await getInstagramToken();
   const url = new URL(`${GRAPH_BASE}${path}`);
   url.searchParams.set("access_token", token);
   return url;
@@ -106,7 +105,7 @@ export async function replyToComment(
     return { id: "dry-run" };
   }
 
-  const url = authedUrl(`/${commentId}/replies`);
+  const url = await authedUrl(`/${commentId}/replies`);
   url.searchParams.set("message", message);
 
   const body = await graphFetch(url, { method: "POST" }, "replyToComment");
@@ -128,7 +127,7 @@ export async function sendPrivateReply(
     return {};
   }
 
-  const url = authedUrl("/me/messages");
+  const url = await authedUrl("/me/messages");
   const body = await graphFetch(
     url,
     {
@@ -157,7 +156,7 @@ export interface CommentDetails {
 /** Fetch extra context for a comment. Best-effort; returns null on failure. */
 export async function getComment(commentId: string): Promise<CommentDetails | null> {
   try {
-    const url = authedUrl(`/${commentId}`);
+    const url = await authedUrl(`/${commentId}`);
     url.searchParams.set("fields", "id,text,username,media{id,permalink}");
     const body = await graphFetch(url, { method: "GET" }, "getComment");
     const media = body.media as { id?: string; permalink?: string } | undefined;
@@ -180,7 +179,7 @@ export async function hideComment(commentId: string, hide: boolean): Promise<voi
     log.info("DRY_RUN: skipping hideComment", { commentId, hide });
     return;
   }
-  const url = authedUrl(`/${commentId}`);
+  const url = await authedUrl(`/${commentId}`);
   url.searchParams.set("hide", String(hide));
   await graphFetch(url, { method: "POST" }, "hideComment");
 }

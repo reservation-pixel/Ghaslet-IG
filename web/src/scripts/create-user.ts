@@ -120,7 +120,7 @@ async function main() {
     console.log("    All existing sessions were signed out.");
   } else {
     const name = flag("--name") ?? null;
-    const role = flag("--role") ?? "admin";
+    const role = flag("--role") ?? "manager";
     if (!isUserRole(role)) die(`--role must be one of: ${USER_ROLES.join(", ")}`);
     if (role === "superadmin") {
       die("Use `npm run seed:superadmin` for the superadmin — only one may exist.");
