@@ -171,7 +171,7 @@ function Activity() {
                 <button
                   key={f.key}
                   onClick={() => setType(f.key)}
-                  className="rounded-[8px] border px-2.5 py-1.5 text-xs font-medium transition-colors"
+                  className="rounded-[8px] border px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.96]"
                   style={{
                     background: active ? "var(--accent-soft)" : "transparent",
                     borderColor: active ? "transparent" : "var(--border)",

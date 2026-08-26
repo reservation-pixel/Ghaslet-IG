@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env.local") });
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
+loadEnv({ path: path.resolve(process.cwd(), "../.env.all") });
 
 import { closePool, getPool } from "@/lib/db";
 

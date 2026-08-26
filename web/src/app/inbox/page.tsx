@@ -130,7 +130,7 @@ function Inbox() {
               <button
                 key={convo.id}
                 onClick={() => setSelectedId(convo.id)}
-                className="relative w-full border-b px-3 py-3 text-left transition-colors"
+                className="relative w-full border-b px-3 py-3 text-left transition-all duration-150 active:scale-[0.99]"
                 style={{
                   borderColor: "var(--border)",
                   background: isSelected ? "var(--accent-soft)" : "transparent",

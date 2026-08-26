@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env.local") });
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
+loadEnv({ path: path.resolve(process.cwd(), "../.env.all") });
 
 import { hashPassword, validatePasswordStrength } from "@/lib/auth/password";
 import {

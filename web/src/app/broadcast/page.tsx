@@ -143,7 +143,7 @@ export default function BroadcastPage() {
         <div className="mb-4">
           <button
             onClick={() => { setActive(null); stopSending(); }}
-            className="text-xs font-medium hover:underline"
+            className="text-xs font-medium transition-all duration-150 active:scale-[0.96] hover:underline"
             style={{ color: "var(--accent)" }}
           >
             &larr; All broadcasts

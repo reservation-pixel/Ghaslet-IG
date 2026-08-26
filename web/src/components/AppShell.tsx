@@ -251,7 +251,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className="flex items-center gap-2.5 rounded-[8px] px-2.5 py-[7px] text-[13px] font-medium transition-colors"
+                      className="flex items-center gap-2.5 rounded-[8px] px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 active:scale-[0.97]"
                       style={{
                         background: active ? "var(--accent-soft)" : "transparent",
                         color: active ? "var(--accent)" : "var(--ink-secondary)",
@@ -315,7 +315,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-[8px] border lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-[8px] border transition-all duration-150 active:scale-[0.92] lg:hidden"
               style={{ borderColor: "var(--border)", color: "var(--ink-secondary)" }}
               aria-label="Open navigation"
             >
@@ -345,7 +345,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 aria-label="Account menu"
-                className="flex h-8 items-center gap-2 rounded-[8px] border pl-1 pr-2 transition-colors"
+                className="flex h-8 items-center gap-2 rounded-[8px] border pl-1 pr-2 transition-all duration-150 active:scale-[0.96]"
                 style={{ borderColor: "var(--border)" }}
               >
                 <span
@@ -408,7 +408,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <button
                       role="menuitem"
                       onClick={signOut}
-                      className="w-full px-3 py-2.5 text-left text-[13px] transition-colors hover:bg-[var(--surface-hover)]"
+                      className="w-full px-3 py-2.5 text-left text-[13px] transition-all duration-150 active:scale-[0.97] hover:bg-[var(--surface-hover)]"
                       style={{ color: "var(--ink)" }}
                     >
                       Sign out

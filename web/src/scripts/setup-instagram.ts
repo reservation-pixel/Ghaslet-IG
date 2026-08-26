@@ -3,6 +3,7 @@ import path from "node:path";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env.local") });
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
+loadEnv({ path: path.resolve(process.cwd(), "../.env.all") });
 
 /**
  * Instagram account setup helper.

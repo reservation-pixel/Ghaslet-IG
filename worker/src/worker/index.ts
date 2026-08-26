@@ -6,6 +6,7 @@ import path from "node:path";
 // imports of our own modules.
 loadEnv({ path: path.resolve(process.cwd(), ".env.local") });
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
+loadEnv({ path: path.resolve(process.cwd(), "../.env.all") });
 
 import { config } from "@/lib/config";
 import { assertWorkerConfig } from "@/lib/config";

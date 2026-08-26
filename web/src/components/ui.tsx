@@ -161,7 +161,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-[8px] border font-medium transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40 ${sizing} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-[8px] border font-medium transition-all duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 ${sizing} ${className}`}
       style={{ ...variants[variant], ...style }}
     />
   );

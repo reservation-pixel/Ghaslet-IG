@@ -51,7 +51,7 @@ export default function ThemeToggle() {
       onClick={cycle}
       title={`Theme: ${theme}`}
       aria-label={`Theme: ${theme}. Click to change.`}
-      className="flex h-8 w-8 items-center justify-center rounded-[8px] border transition-colors"
+      className="flex h-8 w-8 items-center justify-center rounded-[8px] border transition-all duration-150 active:scale-[0.92]"
       style={{ borderColor: "var(--border)", color: "var(--ink-secondary)" }}
     >
       <svg

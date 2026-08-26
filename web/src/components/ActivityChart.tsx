@@ -48,7 +48,7 @@ export default function ActivityChart({ data }: { data: DayBucket[] }) {
         </div>
         <button
           onClick={() => setShowTable((v) => !v)}
-          className="text-xs font-medium underline-offset-2 hover:underline"
+          className="text-xs font-medium underline-offset-2 transition-all duration-150 active:scale-[0.96] hover:underline"
           style={{ color: "var(--ink-muted)" }}
         >
           {showTable ? "Show chart" : "Show table"}

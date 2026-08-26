@@ -244,6 +244,27 @@ export default function AutomationPage() {
             <Button onClick={saveToken} disabled={tokenSaving || !tokenInput.trim()}>
               {tokenSaving ? "Saving..." : "Save"}
             </Button>
+            {tokenConfigured && (
+              <Button
+                variant="danger"
+                onClick={async () => {
+                  setTokenSaving(true);
+                  const res = await apiFetch("/api/settings/token", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: "" }),
+                  });
+                  if (res.ok) {
+                    setTokenConfigured(false);
+                    setTokenPreview(null);
+                  }
+                  setTokenSaving(false);
+                }}
+                disabled={tokenSaving}
+              >
+                Remove
+              </Button>
+            )}
             {tokenSaved && (
               <span className="text-xs font-medium" style={{ color: "var(--good)" }}>
                 Saved
