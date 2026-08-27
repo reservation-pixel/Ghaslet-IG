@@ -10,15 +10,19 @@ let _openai: OpenAI | null = null;
  */
 function getClient(): OpenAI {
   if (!_openai) {
-    _openai = new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
+    const apiKey = process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY;
+    const baseURL = process.env.ANTHROPIC_API_KEY
+      ? "https://api.anthropic.com/v1/"
+      : "https://openrouter.ai/api/v1";
+    _openai = new OpenAI({ baseURL, apiKey });
   }
   return _openai;
 }
 
 function fallbackModels(): string[] {
+  if (process.env.ANTHROPIC_API_KEY) {
+    return [process.env.AI_MODEL || "claude-haiku-4-5-20251001"].filter(Boolean) as string[];
+  }
   return [
     process.env.AI_MODEL,
     "google/gemma-3-12b-it:free",
