@@ -107,9 +107,10 @@ export async function decide(ctx: AutomationContext): Promise<AutomationDecision
     };
   }
 
+  const basePrompt = settings.dm_system_prompt || INSTAGRAM_SYSTEM_PROMPT;
   const systemPrompt = rule.ai_instruction
-    ? `${INSTAGRAM_SYSTEM_PROMPT}\n\n## Additional instruction for this ${ctx.eventType} event\n${rule.ai_instruction}`
-    : INSTAGRAM_SYSTEM_PROMPT;
+    ? `${basePrompt}\n\n## Additional instruction for this ${ctx.eventType} event\n${rule.ai_instruction}`
+    : basePrompt;
 
   try {
     const generated = await getAIResponse([{ role: "user", content: buildUserTurn(ctx) }], {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useCanManage, useSession } from "@/components/SessionContext";
 import {
   Badge,
@@ -427,15 +426,7 @@ export default function AutomationPage() {
                           </div>
                         </div>
 
-                        {isScript ? (
-                          <Link
-                            href="/scripts"
-                            className="flex-shrink-0 rounded-[8px] border px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-85"
-                            style={{ borderColor: "var(--border-strong)", color: "var(--accent)" }}
-                          >
-                            Edit in Scripts
-                          </Link>
-                        ) : canManage ? (
+                        {canManage ? (
                           <div className="flex flex-shrink-0 items-center gap-2">
                             <Toggle
                               checked={rule.enabled}
