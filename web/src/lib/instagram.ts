@@ -38,18 +38,49 @@ export async function fetchInstagramProfile(igsid: string): Promise<InstagramPro
   };
 }
 
+const IG_MSG_LIMIT = 1000;
+
+function splitMessage(text: string): string[] {
+  if (text.length <= IG_MSG_LIMIT) return [text];
+  const chunks: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= IG_MSG_LIMIT) {
+      chunks.push(remaining);
+      break;
+    }
+    let cut = remaining.lastIndexOf("\n\n", IG_MSG_LIMIT);
+    if (cut < 200) cut = remaining.lastIndexOf("\n", IG_MSG_LIMIT);
+    if (cut < 200) cut = remaining.lastIndexOf(". ", IG_MSG_LIMIT);
+    if (cut < 200) cut = IG_MSG_LIMIT;
+    chunks.push(remaining.slice(0, cut).trimEnd());
+    remaining = remaining.slice(cut).trimStart();
+  }
+  return chunks;
+}
+
 export async function sendInstagramMessage(recipientIgsid: string, text: string) {
   const token = await getInstagramToken();
   const url = new URL(`${GRAPH_BASE}/me/messages`);
   url.searchParams.set("access_token", token);
 
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      recipient: { id: recipientIgsid },
-      message: { text },
-    }),
-  });
-  return res.json();
+  const chunks = splitMessage(text);
+  let lastResult: unknown;
+
+  for (const chunk of chunks) {
+    const res = await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipient: { id: recipientIgsid },
+        message: { text: chunk },
+      }),
+    });
+    lastResult = await res.json();
+    if (!res.ok) {
+      throw new Error(`Instagram send failed: ${JSON.stringify(lastResult)}`);
+    }
+  }
+
+  return lastResult;
 }
